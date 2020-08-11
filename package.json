@@ -21,6 +21,7 @@
     "electron-packager": "^15.0.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.2",
     "electron-log": "^4.2.3",
     "eslint": "^7.6.0",
     "eslint-config-airbnb": "^18.2.0",

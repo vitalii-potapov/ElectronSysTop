@@ -9,12 +9,11 @@ let mainWindow;
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
-    title: 'APP NAME',
-    width: isDev ? 800 : 500,
+    title: 'SysTop',
+    width: isDev ? 1100 : 500,
     height: 600,
     icon: `${__dirname}/assets/icons/icon.png`,
     resizable: isDev,
-    backgroundColor: 'white',
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
