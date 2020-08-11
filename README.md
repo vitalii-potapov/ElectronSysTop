@@ -1,0 +1,1 @@
+<h2>Simple electron.js app to monitor your system CPU</h2>
