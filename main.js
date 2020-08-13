@@ -1,6 +1,7 @@
 const path = require('path');
-const { app, BrowserWindow, Menu, ipcMain, Tray } = require('electron');
+const { app, Menu, ipcMain, Tray } = require('electron');
 const Store = require('./store');
+const MainWindow = require('./MainWindow');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
@@ -21,27 +22,29 @@ const store = new Store({
 });
 
 function createMainWindow() {
-  mainWindow = new BrowserWindow({
-    title: 'SysTop',
-    width: isDev ? 1100 : 400,
-    height: 600,
-    icon: `${__dirname}/assets/icons/icon.png`,
-    resizable: isDev,
-    opacity: 0.9,
-    webPreferences: {
-      nodeIntegration: true,
-      enableRemoteModule: true,
-    },
-  });
-
-  if (isDev) mainWindow.webContents.openDevTools();
-
-  mainWindow.loadURL(`file://${__dirname}/app/index.html`);
+  mainWindow = new MainWindow(`file://${__dirname}/app/index.html`, isDev);
 }
 
 const menu = [
   ...(isMac ? [{ role: 'appMenu' }] : []),
   { role: 'fileMenu' },
+  {
+    label: 'View',
+    submenu: [
+      {
+        label: 'CPU',
+        click: () => mainWindow.webContents.send('nav:cpu'),
+      },
+      {
+        label: 'System Info',
+        click: () => mainWindow.webContents.send('nav:sys'),
+      },
+      {
+        label: 'Settings',
+        click: () => mainWindow.webContents.send('nav:sett'),
+      },
+    ],
+  },
   ...(isDev ? [{
     label: 'Developer',
     submenu: [
@@ -75,12 +78,34 @@ app.on('ready', () => {
   const icon = path.join(__dirname, 'assets', 'icons', 'tray_icon.png');
   tray = new Tray(icon);
 
-  tray.on('click', () => {
-    if (mainWindow.isVisible()) mainWindow.hide();
+  function toggleAppWindow(show) {
+    if (mainWindow.isVisible() && !show) mainWindow.hide();
     else mainWindow.show();
-  });
+  }
+  tray.on('click', () => toggleAppWindow());
   tray.on('right-click', () => {
     const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'CPU',
+        click: () => {
+          toggleAppWindow(true);
+          mainWindow.webContents.send('nav:cpu');
+        },
+      },
+      {
+        label: 'System Info',
+        click: () => {
+          toggleAppWindow(true);
+          mainWindow.webContents.send('nav:sys');
+        },
+      },
+      {
+        label: 'Settings',
+        click: () => {
+          toggleAppWindow(true);
+          mainWindow.webContents.send('nav:sett');
+        },
+      },
       {
         label: 'Quit',
         click: () => {
@@ -106,7 +131,7 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
+  if (MainWindow.getAllWindows().length === 0) {
     createMainWindow();
   }
 });

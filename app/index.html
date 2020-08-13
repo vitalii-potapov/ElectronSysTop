@@ -56,7 +56,7 @@
     </main>
     <nav id="nav">
       <ul>
-        <li><i class="fas fa-microchip"></i><p> CPU</p></li>
+        <li><i class="fas fa-microchip"></i> <p>CPU</p></li>
         <li><i class="fas fa-info"></i> <p>System Info</p></li>
         <li><i class="fas fa-cog"></i> <p>Settings</p></li>
       </ul>
@@ -98,6 +98,11 @@
           alert.classList.remove('shake');
         }, 3000);
       }
+
+      const [navCpu, navSys, navSett] = document.querySelectorAll('nav ul li');
+      ipcRenderer.on('nav:cpu', () => navCpu.click())
+      ipcRenderer.on('nav:sys', () => navSys.click())
+      ipcRenderer.on('nav:sett', () => navSett.click())
     </script>
   </body>
 </html>
