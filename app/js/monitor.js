@@ -1,12 +1,24 @@
 const path = require('path');
 const osu = require('node-os-utils');
+const { ipcRenderer } = require('electron');
 
 const { cpu } = osu;
 const { mem } = osu;
 const { os } = osu;
 
-const cpuOverload = 80;
-const alertFrequency = 5;
+let cpuOverload = 80;
+let alertFrequency = 5;
+
+function changedSettings() {
+  localStorage.removeItem('lastNotify');
+  document.querySelector('#cpu-progress').style.background = '';
+}
+
+ipcRenderer.on('settings:get', (e, settings) => {
+  cpuOverload = +settings.cpuOverload;
+  alertFrequency = +settings.alertFrequency;
+  changedSettings();
+});
 
 function notifyUser() {
   // eslint-disable-next-line no-new
@@ -37,8 +49,8 @@ function secondsToDHMS(seconds) {
 
 async function updateInfo() {
   const getInfoCpu = [cpu.usage(), cpu.free()];
-  const cpuUsage = await getInfoCpu[0];
-  const cpuFree = await getInfoCpu[1];
+  const cpuUsage = (await getInfoCpu[0]).toFixed(2);
+  const cpuFree = (await getInfoCpu[1]).toFixed(2);
   const cpuProgressEl = document.querySelector('#cpu-progress');
   const cpuUsageEl = document.querySelector('#cpu-usage');
   const cpuFreeEl = document.querySelector('#cpu-free');

@@ -38,7 +38,9 @@
 
       <div class="content">
         <h1><i class="fas fa-cog"></i> Settings</h1>
-        <div id="alert" class="hide"></div>
+        <div class="alert-wrapper">
+          <div id="alert" class="hide"></div>
+        </div>
         <form id="settings-form">
           <div class="form-control">
             <label for="cpu-overload">CPU Overload Warning %</label>
@@ -48,7 +50,7 @@
             <label for="alert-frequency">Alert Frequency (In Minutes)</label>
             <input id="alert-frequency" type="number">
           </div>
-          <input type="button" value="Save" class="btn">
+          <input type="submit" value="Save" class="btn">
         </form>
       </div>
     </main>
@@ -62,5 +64,40 @@
 
     <script src="js/tabs.js"></script>
     <script src="js/monitor.js"></script>
+    <script>
+      const settingsFormEl = document.querySelector('#settings-form');
+      const cpuOverloadEl = document.querySelector('#cpu-overload');
+      const alertFrequencyEl = document.querySelector('#alert-frequency');
+
+      ipcRenderer.on('settings:get', (e, settings) => {
+        cpuOverloadEl.value = settings.cpuOverload;
+        alertFrequencyEl.value = settings.alertFrequency;
+      })
+
+      settingsFormEl.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const cpuOverloadValue = cpuOverloadEl.value;
+        const alertFrequencyValue = alertFrequencyEl.value;
+
+        ipcRenderer.send('settings:set', {
+          cpuOverload: cpuOverloadValue,
+          alertFrequency: alertFrequencyValue
+        });
+        showAlert('Settings Saved');
+      })
+
+      function showAlert (msg) {
+        const alert = document.querySelector('#alert');
+        alert.classList.remove('hide');
+        alert.classList.add('shake');
+        alert.classList.add('alert');
+        alert.innerText = msg;
+
+        setTimeout(() => {
+          alert.classList.add('hide');
+          alert.classList.remove('shake');
+        }, 3000);
+      }
+    </script>
   </body>
 </html>
