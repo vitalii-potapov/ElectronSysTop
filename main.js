@@ -1,7 +1,8 @@
 const path = require('path');
-const { app, Menu, ipcMain, Tray } = require('electron');
+const { app, Menu, ipcMain } = require('electron');
 const Store = require('./store');
 const MainWindow = require('./MainWindow');
+const AppTray = require('./AppTray');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
@@ -76,47 +77,7 @@ app.on('ready', () => {
   });
 
   const icon = path.join(__dirname, 'assets', 'icons', 'tray_icon.png');
-  tray = new Tray(icon);
-
-  function toggleAppWindow(show) {
-    if (mainWindow.isVisible() && !show) mainWindow.hide();
-    else mainWindow.show();
-  }
-  tray.on('click', () => toggleAppWindow());
-  tray.on('right-click', () => {
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: 'CPU',
-        click: () => {
-          toggleAppWindow(true);
-          mainWindow.webContents.send('nav:cpu');
-        },
-      },
-      {
-        label: 'System Info',
-        click: () => {
-          toggleAppWindow(true);
-          mainWindow.webContents.send('nav:sys');
-        },
-      },
-      {
-        label: 'Settings',
-        click: () => {
-          toggleAppWindow(true);
-          mainWindow.webContents.send('nav:sett');
-        },
-      },
-      {
-        label: 'Quit',
-        click: () => {
-          app.isQuitting = true;
-          app.quit();
-        },
-      },
-    ]);
-
-    tray.popUpContextMenu(contextMenu);
-  });
+  tray = new AppTray(icon, mainWindow);
 }, tray);
 
 ipcMain.on('settings:set', (e, options) => {
