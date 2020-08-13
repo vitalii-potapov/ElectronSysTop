@@ -1,4 +1,5 @@
-const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+const path = require('path');
+const { app, BrowserWindow, Menu, ipcMain, Tray } = require('electron');
 const Store = require('./store');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
@@ -7,6 +8,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 const isMac = process.platform === 'darwin';
 
 let mainWindow;
+let tray;
 
 const store = new Store({
   configName: 'user-settings',
@@ -21,10 +23,11 @@ const store = new Store({
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     title: 'SysTop',
-    width: isDev ? 1100 : 500,
+    width: isDev ? 1100 : 400,
     height: 600,
     icon: `${__dirname}/assets/icons/icon.png`,
     resizable: isDev,
+    opacity: 0.9,
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
@@ -60,7 +63,36 @@ app.on('ready', () => {
 
   const mainMenu = Menu.buildFromTemplate(menu);
   Menu.setApplicationMenu(mainMenu);
-});
+
+  mainWindow.on('close', (e) => {
+    if (!app.isQuitting) {
+      e.preventDefault();
+      mainWindow.hide();
+    }
+    return true;
+  });
+
+  const icon = path.join(__dirname, 'assets', 'icons', 'tray_icon.png');
+  tray = new Tray(icon);
+
+  tray.on('click', () => {
+    if (mainWindow.isVisible()) mainWindow.hide();
+    else mainWindow.show();
+  });
+  tray.on('right-click', () => {
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Quit',
+        click: () => {
+          app.isQuitting = true;
+          app.quit();
+        },
+      },
+    ]);
+
+    tray.popUpContextMenu(contextMenu);
+  });
+}, tray);
 
 ipcMain.on('settings:set', (e, options) => {
   store.set('settings', options);
